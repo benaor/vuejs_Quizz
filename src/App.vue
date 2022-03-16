@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1>microphone can be used not only to pick up sound, but also to project sound similar to a speaker.</h1>
+    <h1 v-html="question"></h1>
 
     <input type="radio" name="options" value="true" />
     <label>True</label>
@@ -20,8 +20,25 @@ import { defineComponent } from 'vue';
 
 export default defineComponent({
   name: 'App',
-  created() {
-    fetch("https://opentdb.com/api.php?amount=1").then(res => res.json()).then(res => res)
+  data() {
+    return {
+      question: "",
+      incorrectAnswers: [],
+      correctAnswers: "",
+    }
+  },
+  computed: {
+    answers() {
+      const answers: Array<string> = [...this.incorrectAnswers]
+      answers.push(this.correctAnswers)
+      return answers
+    }
+  },
+  async created() {
+    const response = await fetch("https://opentdb.com/api.php?amount=1").then(res => res.json())
+    this.question = response.results[0].question
+    this.incorrectAnswers = response.results[0].incorrect_answers
+    this.correctAnswers = response.results[0].correct_answer
   }
 });
 
