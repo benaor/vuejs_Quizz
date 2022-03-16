@@ -1,17 +1,38 @@
 <template>
-  <div>
+  <div v-if="answers && question">
     <h1 v-html="question"></h1>
 
-    <input type="radio" name="options" value="true" />
-    <label>True</label>
-    <br />
+    <template v-for="answer in answers" :key="answer">
+      <input
+        type="radio"
+        name="options"
+        v-model="chosenAnswer"
+        :value="answer"
+        :disabled="answerSubmitted"
+      />
+      <label v-html="answer"></label>
+      <br />
+    </template>
 
-    <input type="radio" name="options" value="false" />
-    <label>False</label>
-    <br />
+    <button
+      v-if="!answerSubmitted"
+      class="send"
+      type="button"
+      @click="sendAnswer()"
+      :disabled="answerSubmitted"
+    >Send</button>
 
-    <button class="send" type="button">Send</button>
-    <br />
+    <section class="result" v-if="answerSubmitted">
+      <h4
+        v-if="chosenAnswer == correctAnswer"
+      >✅ Congratulations, the answer "{{ correctAnswer }}" is correct.</h4>
+      <h4 v-else>❌ I'm sorry, you picked the wrong answer. The correct is "{{ correctAnswer }}".</h4>
+
+      <button @click="getNewQuestion()" class="send" type="button">Next question</button>
+    </section>
+  </div>
+  <div v-else>
+    <h1>Loading ...</h1>
   </div>
 </template>
 
@@ -24,21 +45,34 @@ export default defineComponent({
     return {
       question: "",
       incorrectAnswers: [],
-      correctAnswers: "",
+      correctAnswer: "",
+      chosenAnswer: undefined,
+      answerSubmitted: false
     }
   },
   computed: {
     answers() {
       const answers: Array<string> = [...this.incorrectAnswers]
-      answers.push(this.correctAnswers)
+      answers.splice((Math.round(Math.random() * answers.length)), 0, this.correctAnswer)
       return answers
+    }
+  },
+  methods: {
+    sendAnswer: function () {
+      if (!this.chosenAnswer) alert('Pick one of the options')
+      else if (this.chosenAnswer === this.correctAnswer) console.log('you got it rigth')
+      else if (this.chosenAnswer !== this.correctAnswer) console.log('you loose')
+      this.answerSubmitted = true
+    },
+    getNewQuestion: function () {
+      console.log("yo")
     }
   },
   async created() {
     const response = await fetch("https://opentdb.com/api.php?amount=1").then(res => res.json())
     this.question = response.results[0].question
     this.incorrectAnswers = response.results[0].incorrect_answers
-    this.correctAnswers = response.results[0].correct_answer
+    this.correctAnswer = response.results[0].correct_answer
   }
 });
 
