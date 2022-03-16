@@ -1,4 +1,6 @@
 <template>
+  <ScoreBoard :winCount="winCount" :loseCount="loseCount" />
+
   <div v-if="answers && question">
     <h1 v-html="question"></h1>
 
@@ -37,17 +39,20 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent } from 'vue'
+import ScoreBoard from './components/ScoreBoard.vue'
 
 export default defineComponent({
-  name: 'App',
+  name: "App",
   data() {
     return {
       question: "",
       incorrectAnswers: [],
       correctAnswer: "",
       chosenAnswer: undefined,
-      answerSubmitted: false
+      answerSubmitted: false,
+      winCount: 0,
+      loseCount: 0
     }
   },
   computed: {
@@ -58,23 +63,32 @@ export default defineComponent({
     }
   },
   methods: {
+    getData: async function () {
+      const response = await fetch("https://opentdb.com/api.php?amount=1").then(res => res.json())
+      this.question = response.results[0].question
+      this.incorrectAnswers = response.results[0].incorrect_answers
+      this.correctAnswer = response.results[0].correct_answer
+      this.chosenAnswer = undefined
+      this.answerSubmitted = false
+    },
+    isGoodAnswer: function (): boolean {
+      return (this.chosenAnswer === this.correctAnswer) ? true : false
+    },
     sendAnswer: function () {
-      if (!this.chosenAnswer) alert('Pick one of the options')
-      else if (this.chosenAnswer === this.correctAnswer) console.log('you got it rigth')
-      else if (this.chosenAnswer !== this.correctAnswer) console.log('you loose')
+      if (!this.chosenAnswer) alert("Pick one of the options")
+      else if (this.isGoodAnswer()) this.winCount++
+      else if (!this.isGoodAnswer()) this.loseCount++
       this.answerSubmitted = true
     },
     getNewQuestion: function () {
-      console.log("yo")
+      this.getData()
     }
   },
   async created() {
-    const response = await fetch("https://opentdb.com/api.php?amount=1").then(res => res.json())
-    this.question = response.results[0].question
-    this.incorrectAnswers = response.results[0].incorrect_answers
-    this.correctAnswer = response.results[0].correct_answer
-  }
-});
+    this.getData()
+  },
+  components: { ScoreBoard }
+})
 
 </script>
 
