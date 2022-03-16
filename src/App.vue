@@ -20,9 +20,11 @@ import { defineComponent } from 'vue';
 
 export default defineComponent({
   name: 'App',
+  created() {
+    fetch("https://opentdb.com/api.php?amount=1").then(res => res.json()).then(res => res)
+  }
 });
 
-// https://opentdb.com/api.php?amount=1
 </script>
 
 <style lang="scss">
